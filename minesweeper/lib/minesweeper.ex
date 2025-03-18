@@ -165,9 +165,13 @@ defmodule Minesweeper do
     Enum.reduce(minas, 0, fn l, acc -> acc + Enum.count(l, fn x -> x == true end) end)
   end
 
+  def conta_marcadas(tab) do
+    Enum.reduce(tab, 0, fn l, acc -> acc + Enum.count(l, fn x -> x == "*" end) end)
+  end
+
 # end_game?/2: recebe o tabuleiro de minas, o tauleiro do jogo, e diz se o jogo acabou.
 # O jogo acabou quando o número de casas fechadas é igual ao numero de minas
-  def end_game(minas,tab), do: conta_fechadas(tab) == conta_minas(minas)
+  def end_game(minas,tab), do: conta_fechadas(tab) + conta_marcadas(tab) == conta_minas(minas)
 
 #### fim do módulo
 end
@@ -182,28 +186,42 @@ defmodule Motor do
    v = IO.gets("Digite o tamanho do tabuleiro: \n")
    {size,_} = Integer.parse(v)
    minas = gen_mines_board(size)
-   #IO.inspect minas -- descomente para ver onde estão as minas
+   IO.inspect minas # descomente para ver onde estão as minas
    tabuleiro = Minesweeper.gera_tabuleiro(size)
    game_loop(minas,tabuleiro)
   end
   def game_loop(minas,tabuleiro) do
     IO.puts Minesweeper.board_to_string(tabuleiro)
+    opt = IO.gets("Digite 'm' para marcar uma mina, 'a' para abrir uma posição: \n")
     v = IO.gets("Digite uma linha: \n")
     {linha,_} = Integer.parse(v)
     v = IO.gets("Digite uma coluna: \n")
     {coluna,_} = Integer.parse(v)
-    if (Minesweeper.is_mine(minas,linha,coluna)) do
-      IO.puts "VOCÊ PERDEU!!!!!!!!!!!!!!!!"
-      IO.puts Minesweeper.board_to_string(Minesweeper.abre_tabuleiro(minas,tabuleiro))
-      IO.puts "TENTE NOVAMENTE!!!!!!!!!!!!"
+    if opt == "m\n" do # marcar mina
+      game_loop(minas,Minesweeper.update_pos(tabuleiro,linha,coluna,"*"))
     else
-      novo_tabuleiro = Minesweeper.abre_jogada(linha,coluna,minas,tabuleiro)
-      if (Minesweeper.end_game(minas,novo_tabuleiro)) do
-          IO.puts "VOCÊ VENCEU!!!!!!!!!!!!!!"
-          IO.puts Minesweeper.board_to_string(Minesweeper.abre_tabuleiro(minas,novo_tabuleiro))
-          IO.puts "PARABÉNS!!!!!!!!!!!!!!!!!"
+      if (linha < 0) or (linha >= Minesweeper.arr_size(tabuleiro)) or (coluna < 0) or (coluna >= Minesweeper.arr_size(tabuleiro)) do
+        IO.puts "Posição inválida"
+        game_loop(minas,tabuleiro)
       else
-          game_loop(minas,novo_tabuleiro)
+        if (Minesweeper.get_pos(tabuleiro, linha, coluna) == "*") do
+          game_loop(minas,tabuleiro)
+        else
+          if (Minesweeper.is_mine(minas,linha,coluna)) do
+            IO.puts "VOCÊ PERDEU!!!!!!!!!!!!!!!!"
+            IO.puts Minesweeper.board_to_string(Minesweeper.abre_tabuleiro(minas,tabuleiro))
+            IO.puts "TENTE NOVAMENTE!!!!!!!!!!!!"
+          else
+            novo_tabuleiro = Minesweeper.abre_jogada(linha,coluna,minas,tabuleiro)
+            if (Minesweeper.end_game(minas,novo_tabuleiro)) do
+                IO.puts "VOCÊ VENCEU!!!!!!!!!!!!!!"
+                IO.puts Minesweeper.board_to_string(Minesweeper.abre_tabuleiro(minas,novo_tabuleiro))
+                IO.puts "PARABÉNS!!!!!!!!!!!!!!!!!"
+            else
+                game_loop(minas,novo_tabuleiro)
+            end
+          end
+        end
       end
     end
   end
