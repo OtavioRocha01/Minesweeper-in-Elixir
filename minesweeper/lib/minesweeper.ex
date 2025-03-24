@@ -139,7 +139,11 @@ defmodule Minesweeper do
   end
 
   def print_linha(tab, l) do
-    IO.write(Integer.to_string(l) <> " ")
+    if l < 10 do
+      IO.write(Integer.to_string(l) <> "  ")
+    else
+      IO.write(Integer.to_string(l) <> " ")
+    end
     for i <- 0..(arr_size(tab)-1) do
       IO.write("| ")
       IO.write(get_pos(tab, l, i))
