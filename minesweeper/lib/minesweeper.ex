@@ -211,6 +211,8 @@ end
 
 # A seguir está o motor do jogo!
 
+# SÓ TESTANDO AQUI
+
 defmodule Motor do
   def main() do
    v = IO.gets("Digite o tamanho do tabuleiro: \n")
